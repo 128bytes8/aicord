@@ -1,0 +1,166 @@
+/* AiCord - Plugin Styles */
+
+.vc-aicord-icon {
+    color: var(--interactive-normal);
+    transition: color 0.15s ease;
+}
+
+.vc-aicord-icon:hover {
+    color: var(--interactive-hover);
+}
+
+.vc-aicord-chat-button {
+    color: var(--interactive-normal);
+}
+
+/* Modal */
+.vc-aicord-modal-header {
+    padding: 16px;
+}
+
+.vc-aicord-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--header-primary);
+}
+
+.vc-aicord-sparkle {
+    color: var(--brand-500);
+}
+
+.vc-aicord-modal-content {
+    padding: 0 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.vc-aicord-modal-footer {
+    padding: 16px;
+}
+
+.vc-aicord-footer-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    width: 100%;
+}
+
+/* Fields */
+.vc-aicord-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.vc-aicord-label {
+    color: var(--header-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.vc-aicord-topic-input textarea {
+    min-height: 72px;
+    resize: vertical;
+}
+
+/* Tone Grid */
+.vc-aicord-tone-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.vc-aicord-tone-btn {
+    padding: 6px 14px;
+    border-radius: 16px;
+    border: 1px solid var(--background-modifier-accent);
+    background: var(--background-secondary);
+    color: var(--text-normal);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: var(--font-primary);
+    line-height: 1.2;
+}
+
+.vc-aicord-tone-btn:hover {
+    background: var(--background-modifier-hover);
+    border-color: var(--brand-500);
+}
+
+.vc-aicord-tone-active {
+    background: var(--brand-500) !important;
+    color: #fff !important;
+    border-color: var(--brand-500) !important;
+}
+
+/* Length Row */
+.vc-aicord-length-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.vc-aicord-length-input {
+    width: 72px;
+}
+
+.vc-aicord-length-input input {
+    text-align: center;
+}
+
+.vc-aicord-length-sep {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.vc-aicord-length-unit {
+    color: var(--text-muted);
+    margin-left: 4px;
+}
+
+/* Error */
+.vc-aicord-error {
+    color: var(--text-danger);
+    padding: 8px 12px;
+    background: var(--info-danger-background);
+    border-radius: 4px;
+}
+
+/* Quote Box (Custom Reply) */
+.vc-aicord-quote-box {
+    background: var(--background-secondary);
+    border-left: 3px solid var(--brand-500);
+    border-radius: 0 4px 4px 0;
+    padding: 8px 12px;
+    color: var(--text-muted);
+    font-style: italic;
+    line-height: 1.4;
+}
+
+.vc-aicord-media-tag {
+    color: var(--text-link);
+    margin-top: 4px;
+    font-style: normal;
+}
+
+/* Preview */
+.vc-aicord-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.vc-aicord-preview-box {
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-accent);
+    border-radius: 8px;
+    padding: 12px;
+    max-height: 160px;
+    overflow-y: auto;
+    color: var(--text-normal);
+    line-height: 1.4;
+}
