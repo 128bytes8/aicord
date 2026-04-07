@@ -141,7 +141,8 @@
     line-height: 1.4;
 }
 
-.vc-aicord-media-tag {
+.vc-aicord-media-tag,
+.vc-aicord-context-tag {
     color: var(--text-link);
     margin-top: 4px;
     font-style: normal;

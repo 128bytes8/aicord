@@ -6,6 +6,12 @@
 
 import { settings } from "./settings";
 
+export interface ConversationMessage {
+    author: string;
+    content: string;
+    isTarget: boolean;
+}
+
 type MultimodalContent =
     | { type: "text"; text: string; }
     | { type: "image_url"; image_url: { url: string; }; };
@@ -130,6 +136,7 @@ export async function generateReply(
     toneOverride?: string,
     wordRangeOverride?: { min: number; max: number; },
     customInstructions?: string,
+    conversationContext: ConversationMessage[] = [],
 ): Promise<string> {
     const { apiKey, modelName, customPrompt, defaultText } = settings.store;
     const activeTone = toneOverride ?? settings.store.defaultTone ?? "casual";
@@ -140,13 +147,27 @@ export async function generateReply(
     const maxW = wordRangeOverride?.max ?? settings.store.maxWords;
 
     const hasImages = imageUrls.length > 0;
+    const hasContext = conversationContext.length > 1;
+
+    const contextBlock = hasContext
+        ? [
+            "",
+            "CONVERSATION CONTEXT (messages in order, oldest first):",
+            ...conversationContext.map(m =>
+                `${m.isTarget ? ">>> " : ""}[${m.author}]: ${m.content}`
+            ),
+            "",
+            "The message marked with >>> is the one you are replying to. Use the full conversation above to inform your reply — reference earlier messages if relevant, understand the flow of discussion, and reply naturally as if you've been reading the whole thread.",
+        ]
+        : [];
 
     const systemPrompt = [
         customPrompt,
+        ...contextBlock,
         "",
         "CRITICAL RULES:",
-        `- You are replying to someone's Discord message. Your reply MUST directly engage with what they said.`,
-        `- Reference specific things from their message. Agree, disagree, add onto it, joke about it — but make it clear you read and understood their message.`,
+        `- You are replying to ${authorName}'s Discord message. Your reply MUST directly engage with what they said.`,
+        `- Reference specific things from their message and the conversation. Agree, disagree, add onto it, joke about it — but make it clear you read and understood the thread.`,
         hasImages ? `- The message includes images/video frames. Acknowledge and react to what you see in the visual content naturally, as part of your reply.` : "",
         customInstructions ? `- IMPORTANT USER INSTRUCTION: ${customInstructions}` : "",
         `- Sound like a real person chatting on Discord, not a bot or assistant.`,

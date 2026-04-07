@@ -11,9 +11,10 @@ import { sendMessage } from "@utils/discord";
 import { openModal } from "@utils/modal";
 import definePlugin from "@utils/types";
 import { Message } from "@vencord/discord-types";
-import { ChannelStore, Menu, Toasts } from "@webpack/common";
+import { ChannelStore, Menu, MessageStore, Toasts } from "@webpack/common";
 
 import { generateReply, getDelayMs } from "./api";
+import type { ConversationMessage } from "./api";
 import { AiCordChatBarIcon } from "./components/AiCordChatBarButton";
 import { AiCordIcon, AiCordPlusIcon } from "./components/AiCordIcon";
 import { CustomReplyModal } from "./components/CustomReplyModal";
@@ -68,6 +69,54 @@ async function gatherAllMediaUrls(message: Message): Promise<string[]> {
     return [...imageUrls, ...videoFrames];
 }
 
+const MAX_CHAIN_DEPTH = 15;
+const SURROUNDING_MESSAGES = 5;
+
+function gatherConversationContext(message: Message): ConversationMessage[] {
+    const channelMessages = MessageStore.getMessages(message.channel_id);
+    if (!channelMessages) return [];
+
+    const allMessages: Message[] = channelMessages._array ?? [];
+    if (allMessages.length === 0) return [];
+
+    const replyChain: Message[] = [];
+    const visited = new Set<string>();
+    let current: Message | undefined = message;
+
+    while (current && replyChain.length < MAX_CHAIN_DEPTH) {
+        if (visited.has(current.id)) break;
+        visited.add(current.id);
+        replyChain.unshift(current);
+
+        const refId = (current as any).messageReference?.message_id;
+        if (!refId) break;
+        current = allMessages.find(m => m.id === refId);
+    }
+
+    const targetIdx = allMessages.findIndex(m => m.id === message.id);
+
+    if (replyChain.length <= 1 && targetIdx > 0) {
+        const startIdx = Math.max(0, targetIdx - SURROUNDING_MESSAGES);
+        const surrounding = allMessages.slice(startIdx, targetIdx + 1);
+        const contextMessages: ConversationMessage[] = [];
+        for (const msg of surrounding) {
+            if (visited.has(msg.id)) continue;
+            contextMessages.push({
+                author: (msg.author as any)?.username ?? "unknown",
+                content: msg.content || "(media)",
+                isTarget: msg.id === message.id,
+            });
+        }
+        return contextMessages;
+    }
+
+    return replyChain.map(msg => ({
+        author: (msg.author as any)?.username ?? "unknown",
+        content: msg.content || "(media)",
+        isTarget: msg.id === message.id,
+    }));
+}
+
 async function handleAiReply(message: Message) {
     const channelId = message.channel_id;
     if (!channelId) return;
@@ -97,7 +146,8 @@ async function handleAiReply(message: Message) {
 
     try {
         const allMediaUrls = await gatherAllMediaUrls(message);
-        const reply = await generateReply(content, authorName, allMediaUrls);
+        const context = gatherConversationContext(message);
+        const reply = await generateReply(content, authorName, allMediaUrls, undefined, undefined, undefined, context);
         const delay = getDelayMs();
 
         if (delay > 0) {
@@ -138,6 +188,8 @@ function openCustomReplyModal(message: Message) {
         type: Toasts.Type.MESSAGE,
     });
 
+    const context = gatherConversationContext(message);
+
     gatherAllMediaUrls(message).then(allMediaUrls => {
         openModal(props => (
             <CustomReplyModal
@@ -145,6 +197,7 @@ function openCustomReplyModal(message: Message) {
                 messageContent={message.content}
                 authorName={authorName}
                 imageUrls={allMediaUrls}
+                conversationContext={context}
                 onGenerated={(text: string) => {
                     sendMessage(channelId, { content: text }, true, {
                         messageReference: {
@@ -161,13 +214,14 @@ function openCustomReplyModal(message: Message) {
                 }}
             />
         ));
-    }).catch(e => {
+    }).catch(() => {
         openModal(props => (
             <CustomReplyModal
                 rootProps={props}
                 messageContent={message.content}
                 authorName={authorName}
                 imageUrls={extractImageUrls(message)}
+                conversationContext={context}
                 onGenerated={(text: string) => {
                     sendMessage(channelId, { content: text }, true, {
                         messageReference: {

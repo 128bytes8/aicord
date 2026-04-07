@@ -9,6 +9,7 @@ import { ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalProps, M
 import { Button, Text, TextArea, TextInput, useState } from "@webpack/common";
 
 import { generateReply } from "../api";
+import type { ConversationMessage } from "../api";
 import { TONES } from "../settings";
 import { cl } from "../utils";
 import { AiCordPlusIcon } from "./AiCordIcon";
@@ -18,10 +19,11 @@ interface CustomReplyModalProps {
     messageContent: string;
     authorName: string;
     imageUrls: string[];
+    conversationContext?: ConversationMessage[];
     onGenerated: (text: string) => void;
 }
 
-export function CustomReplyModal({ rootProps, messageContent, authorName, imageUrls, onGenerated }: CustomReplyModalProps) {
+export function CustomReplyModal({ rootProps, messageContent, authorName, imageUrls, conversationContext, onGenerated }: CustomReplyModalProps) {
     const [customInstructions, setCustomInstructions] = useState("");
     const [selectedTone, setSelectedTone] = useState("casual");
     const [minWords, setMinWords] = useState(5);
@@ -45,7 +47,8 @@ export function CustomReplyModal({ rootProps, messageContent, authorName, imageU
                 imageUrls,
                 selectedTone,
                 { min: minWords, max: maxWords },
-                customInstructions || undefined
+                customInstructions || undefined,
+                conversationContext ?? [],
             );
             setPreview(result);
         } catch (e: any) {
@@ -83,6 +86,11 @@ export function CustomReplyModal({ rootProps, messageContent, authorName, imageU
                         {imageUrls.length > 0 && (
                             <Text variant="text-xs/normal" className={cl("media-tag")}>
                                 + {imageUrls.length} media attachment{imageUrls.length > 1 ? "s" : ""}
+                            </Text>
+                        )}
+                        {conversationContext && conversationContext.length > 1 && (
+                            <Text variant="text-xs/normal" className={cl("context-tag")}>
+                                + {conversationContext.length} messages in thread context
                             </Text>
                         )}
                     </div>
